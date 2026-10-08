@@ -2,8 +2,8 @@
 
 ## Student Details
 
-- **Full Name:** `<Enter name>`
-- **CCID:** `<Enter ccid>`
+- **Full Name:** `Jayden Nguyen`
+- **CCID:** `jvnguye1`
 
 ## References and Resources
 
