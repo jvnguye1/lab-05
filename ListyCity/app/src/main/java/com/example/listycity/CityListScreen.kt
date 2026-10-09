@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +36,7 @@ fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit,
     onUpdateCity: (City, City) -> Unit,
+    onDeleteCity: (City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember { mutableStateOf("") }
@@ -40,12 +45,30 @@ fun CityListScreen(
     var selectedCity by remember { mutableStateOf<City?>(null) }
     var editedCityName by remember { mutableStateOf("") }
     var editedProvinceName by remember { mutableStateOf("") }
+    var deleteMode by remember {mutableStateOf(false)}
+    var openDialog by remember {mutableStateOf(false)}
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
+            FloatingActionButton(
+                modifier = Modifier.padding(16.dp).width(150.dp).height(50.dp),
+                onClick = {
+                    deleteMode =  !deleteMode
+                    if(deleteMode){
+                        selectedCity = null
+                    }
+                }
+            ) {
+                if(deleteMode){
+                    Text("Cancel Delete")
+                }else{
+                    Text("Delete City")
+                }
+
+            }
             FloatingActionButton(
                 modifier = Modifier.padding(16.dp),
                 onClick = {
@@ -104,7 +127,7 @@ fun CityListScreen(
                 }
             }
         }
-        if (selectedCity != null) {
+        if (selectedCity != null && deleteMode == false) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,12 +183,18 @@ fun CityListScreen(
                 CityRow(
                     city = city,
                     onClick = {
-                        showAddCityFields = false
-                        newCityName = ""
-                        newProvinceName = ""
-                        selectedCity = city
-                        editedCityName = city.name
-                        editedProvinceName = city.province
+                        if(deleteMode){
+                            selectedCity = city
+                            openDialog = true
+                        }else{
+                            showAddCityFields = false
+                            newCityName = ""
+                            newProvinceName = ""
+                            selectedCity = city
+                            editedCityName = city.name
+                            editedProvinceName = city.province
+                        }
+
                     }
                 )
                 if (index < cities.lastIndex) {
@@ -173,6 +202,38 @@ fun CityListScreen(
                 }
             }
         }
+        if(openDialog){
+            AlertDialog(
+                onDismissRequest = {
+                    openDialog = false
+                },
+                text = {Text("Delete City?")},
+                confirmButton = {
+                    TextButton(onClick = {
+                        val cityToModify = selectedCity as City
+                        openDialog = false
+                        onDeleteCity(
+                            cityToModify
+                        )
+                        deleteMode = false
+                        selectedCity = null
+
+
+                    }) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        openDialog = false
+                        selectedCity = null
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
     }
 }
 
@@ -213,7 +274,8 @@ fun CityListScreenPreview() {
                 City("Calgary", "AB")
             ),
             onAddCity = {},
-            onUpdateCity = { _, _ -> }
+            onUpdateCity = { _, _ -> },
+            onDeleteCity = {}
         )
     }
 }
